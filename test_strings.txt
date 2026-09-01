@@ -1,0 +1,163 @@
+# Test cases for a minimum edit distance (Levenshtein) implementation.
+#
+# FORMAT   source|target|d_sub1|d_sub2
+#   d_sub1 = distance with insert=1, delete=1, substitute=1  (standard Levenshtein)
+#   d_sub2 = distance with insert=1, delete=1, substitute=2  (Jurafsky & Martin variant,
+#            where a substitution is treated as a delete plus an insert)
+#
+# PARSING NOTES
+#   - Lines starting with '#' are comments; blank lines are separators. Skip both.
+#   - Split on the FIRST 3 '|' characters only. No string below contains a '|'.
+#   - Do NOT strip the fields: empty strings and leading spaces are deliberate
+#     test cases (an empty field means the empty string "").
+#   - Split into 4 fields, e.g. in Python:
+#         src, tgt, d1, d2 = line.rstrip(chr(10)).split('|')
+#
+# All expected values were computed with a reference DP implementation.
+# Every pair also appears with its arguments in one order only -- distance is
+# symmetric, so d(source, target) == d(target, source) is worth asserting too.
+
+# ------------------------------------------------------------------------
+# EDGE CASES  (empty strings, identical strings)
+# ------------------------------------------------------------------------
+||0|0
+|a|1|1
+a||1|1
+|abc|3|3
+abc||3|3
+a|a|0|0
+abc|abc|0|0
+a|b|1|2
+
+# ------------------------------------------------------------------------
+# SINGLE OPERATIONS  (one insert / delete / substitute)
+# ------------------------------------------------------------------------
+cat|cats|1|1
+cats|cat|1|1
+cat|cut|1|2
+cat|at|1|1
+at|cat|1|1
+abc|abd|1|2
+
+# ------------------------------------------------------------------------
+# CLASSIC TEXTBOOK PAIRS  (known published answers)
+# ------------------------------------------------------------------------
+kitten|sitting|3|5
+intention|execution|5|8
+saturday|sunday|3|4
+sunday|saturday|3|4
+flaw|lawn|2|2
+gumbo|gambol|2|3
+levenshtein|levenstein|1|1
+distance|instance|2|2
+horse|ros|3|4
+ros|horse|3|4
+
+# ------------------------------------------------------------------------
+# SYMMETRY & ORDERING  (d(a,b) must equal d(b,a))
+# ------------------------------------------------------------------------
+abcdef|abcdfe|2|2
+ab|ba|2|2
+abc|cba|2|4
+abababab|babababa|2|2
+stressed|desserts|6|8
+
+# ------------------------------------------------------------------------
+# REPEATED CHARACTERS  (catches off-by-one in the DP table)
+# ------------------------------------------------------------------------
+aaa|aa|1|1
+aa|aaa|1|1
+aaaa|aaaa|0|0
+aaa|bbb|3|6
+aab|abb|1|2
+aaabbb|bbbaaa|6|6
+mississippi|missisippi|1|1
+
+# ------------------------------------------------------------------------
+# PREFIX / SUFFIX / SUBSTRING
+# ------------------------------------------------------------------------
+prefix|prefixsuffix|6|6
+suffix|prefixsuffix|6|6
+abc|abcdef|3|3
+abcdef|abc|3|3
+abcdef|cde|3|3
+
+# ------------------------------------------------------------------------
+# NO CHARACTERS IN COMMON  (distance = max(len) when equal length)
+# ------------------------------------------------------------------------
+abc|xyz|3|6
+abcd|wxyz|4|8
+hello|12345|5|10
+
+# ------------------------------------------------------------------------
+# CASE AND WHITESPACE SENSITIVITY
+# ------------------------------------------------------------------------
+Hello|hello|1|2
+HELLO|hello|5|10
+hello world|helloworld|1|1
+hello  world|hello world|1|1
+ trim|trim|1|1
+
+# ------------------------------------------------------------------------
+# PUNCTUATION, DIGITS, SYMBOLS
+# ------------------------------------------------------------------------
+12345|12354|2|2
+v1.2.3|v1.3.0|2|4
+e-mail|email|1|1
+don't|dont|1|1
+C++|C#|2|3
+192.168.0.1|192.168.1.1|1|2
+
+# ------------------------------------------------------------------------
+# REAL-WORLD TYPOS  (spellchecker-style, expect 1-2)
+# ------------------------------------------------------------------------
+receive|recieve|2|2
+definitely|definately|1|2
+separate|seperate|1|2
+necessary|neccessary|1|1
+accommodate|acommodate|1|1
+algorithm|algorithim|1|1
+programming|programing|1|1
+
+# ------------------------------------------------------------------------
+# LONGER STRINGS / SENTENCES  (check performance and memory)
+# ------------------------------------------------------------------------
+dynamic programming|dynamic programing|1|1
+the quick brown fox jumps over the lazy dog|the quick brown fox jumped over a lazy dog|5|7
+minimum edit distance|minimal edit distances|3|5
+pneumonoultramicroscopicsilicovolcanoconiosis|pseudopseudohypoparathyroidism|35|49
+A DP table of size (m+1) by (n+1) is filled row by row.|A DP table of size (m+1) x (n+1) gets filled column by column.|15|21
+
+# ------------------------------------------------------------------------
+# UNICODE  (optional -- a byte-based implementation will differ here)
+# ------------------------------------------------------------------------
+café|cafe|1|2
+naïve|naive|1|2
+日本語|日本|1|1
+Ünïcödé|Unicode|4|8
+
+# ------------------------------------------------------------------------
+# LOOSE STRINGS -- pair these up however you like for extra ad-hoc testing.
+# (No expected values; below this marker the format above no longer applies.)
+# ------------------------------------------------------------------------
+# BEGIN_LOOSE_STRINGS
+algorithm
+logarithm
+recursion
+iteration
+memoization
+tabulation
+substitution
+substitute
+insertion
+deletion
+sequence
+subsequence
+alignment
+distance
+similarity
+Wagner-Fischer
+Needleman-Wunsch
+Smith-Waterman
+Hamming
+Damerau-Levenshtein
